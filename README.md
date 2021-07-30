@@ -1,6 +1,6 @@
-# react-metaverse
+# React Metaverse Library
 
-> React Metaverse Library Component
+> React Metaverse Library 
 
 [![NPM](https://img.shields.io/npm/v/react-metaverse.svg)](https://www.npmjs.com/package/react-metaverse) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -38,3 +38,7 @@ const App = () => {
 ## License
 
 MIT © [rubenchoi](https://github.com/rubenchoi)
+
+## Reference
+
+[Blog](https://rubenchoi.tistory.com/entry/metaverse-1?category=467531)

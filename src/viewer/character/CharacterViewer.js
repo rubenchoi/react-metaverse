@@ -18,11 +18,11 @@ function CharacterViewer(props) {
 
     const clock = new THREE.Clock();
 
-    const canvasRef = useRef(null);
+    const refCanvas = useRef(null);
 
     useEffect(() => {
         const init = () => {
-            const canvas = props.canvas || canvasRef.current;
+            const canvas = props.canvas && props.canvas.current || refCanvas.current;
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
 
@@ -66,7 +66,7 @@ function CharacterViewer(props) {
     }, [cg]);
 
     return (<>
-        {props.canvas || <canvas ref={canvasRef} style={{ width: '100%', height: '100%', border: '1px dashed gray' }} />}
+        <canvas ref={refCanvas} style={{ display: props.canvas ? 'none' : 'block', width: '100%', height: '100%', border: '1px dashed gray' }} />
 
         {status === Status.INITIALIZING &&
             <div style={{ position: 'absolute', top: 0, width: '100%', height: '100%', zIndex: 9, textAlign: "center", backgroundColor: 'rgba(255,255,255,0.8)' }}>
@@ -87,7 +87,7 @@ function CharacterViewer(props) {
                     character={props.character}
                     scale={props.scale}
                     delta={delta}
-                    onLoad={() => setStatus(Status.IDLE)}
+                    onLoad={() => { setStatus(Status.IDLE) && props.onLoad && props.onLoad(refCanvas) }}
                 />
             }
         </>

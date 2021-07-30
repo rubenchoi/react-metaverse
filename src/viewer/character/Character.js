@@ -9,6 +9,14 @@ import DatGuiComponent from './DatGuiComponent';
 import Animation from './Animation';
 import Movement from './Movement';
 
+const ObjectsToDisableTransparency = [
+    'Short_ponytail', 'Half_up', 'hair'
+]
+
+const MaterialsToDisableTransparency = [
+    'Hair_Transparency'
+]
+
 function Character(props) {
     const [animationIndex, setAnimationIndex] = useState(-1);
     const [character, setCharacter] = useState(undefined);
@@ -42,6 +50,16 @@ function Character(props) {
         init();
     }, []);
 
+    const updateMaterial = (name, mat) => {
+        MaterialsToDisableTransparency.forEach((item) => {
+            if (mat.name.includes(item)) {
+                console.log("::MATERIAL[" + name + "] " + mat.name + " transparent to false");
+                mat.transparent = false;
+                return;
+            }
+        })
+    }
+
     const parseRig = (obj) => {
         try {
             switch (obj.type) {
@@ -50,13 +68,20 @@ function Character(props) {
                     obj.castShadow = true;
                     obj.receiveShadow = true;
 
-                    const material = obj.material;
-                    if (obj.name.includes('hair')) {
+                    // let isToChangeMaterial;
+                    // ObjectsToDisableTransparency.forEach((m) => {
+                    //     if (obj.name.includes(m)) {
+                    //         isToChangeMaterial = true;
+                    //         return;
+                    //     }
+                    // })
+                    // if (isToChangeMaterial) 
+                    {
+                        const material = obj.material;
                         if (Array.isArray(material)) {
-                            material.forEach(m => {
-                                console.log("*PROCESSED*" + obj.name + " Material " + material.name + " depthWrite to false");
-                                m.depthWrite = false;
-                            })
+                            material.forEach(m => updateMaterial(obj.name, m));
+                        } else {
+                            updateMaterial(obj.name, material);
                         }
                     }
                     break;
