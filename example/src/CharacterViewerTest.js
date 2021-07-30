@@ -12,7 +12,8 @@ const App = () => {
         width='640px'
         height='480px'
       />
-      <CharacterViewer character="sample.fbx" scale="0.1" canvas={canvasRef} />
+      <CharacterViewer character="sample.fbx" geo={{ scale: 0.1, position: { x: 0, y: -40, z: 0 } }} canvas={canvasRef} />
+      {/* <CharacterViewer character="0_man_LOD0.fbx" geo={{ scale: 1.0, position: { x: 0, y: -160, z: 0 } }} canvas={canvasRef} /> */}
     </>
   );
 }

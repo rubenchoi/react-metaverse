@@ -85,7 +85,7 @@ function CharacterViewer(props) {
                 <Character
                     scene={cg.scene}
                     character={props.character}
-                    scale={props.scale}
+                    geo={props.geo}
                     delta={delta}
                     onLoad={() => { setStatus(Status.IDLE) && props.onLoad && props.onLoad(refCanvas) }}
                 />

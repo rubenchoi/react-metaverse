@@ -9,7 +9,7 @@ const App = () => {
     <Router>
       <Switch>
         <Route path='/character' component={CharacterPage} />
-        <Route path='/sampleCharacter' component={() => <CharacterViewer character={'0_man_LOD0.fbx'} scale={0.1} />} />
+        <Route path='/sampleCharacter' component={() => <CharacterViewer character={'sample.fbx'} geo={{ scale: 0.1, position: { x: 0, y: -40, z: 0 } }} />} />
         <Route path='/sampleWorld' component={() => <WorldViewer world={'sample.fbx'} scale={0.05} hdri={'small_harbor_01_1k.hdr'} />} />
         <Route path='/characterViewerTest' component={() => <CharacterViewerTest />} />
         <Route path='/' component={() => <>

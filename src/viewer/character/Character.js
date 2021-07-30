@@ -33,7 +33,7 @@ function Character(props) {
                 loader.load(fullpath, (loaded) => {
                     let model = loaded.scene || loaded;
                     model.traverse(parseRig);
-                    postprocess({ model: model, scale: props.scale });
+                    postprocess({ model: model, geo: props.geo });
                     setCharacter(model);
                     resolve(model);
                 })
@@ -99,20 +99,20 @@ function Character(props) {
         } catch (e) { }
     }
 
-    const postprocess = ({ model, position, rotation, scale }) => {
-        if (position) {
-            model.position.x += position.x;
-            model.position.y += position.y;
-            model.position.z += position.z;
+    const postprocess = ({ model, geo }) => {
+        if (geo.position) {
+            model.position.x += geo.position.x;
+            model.position.y += geo.position.y;
+            model.position.z += geo.position.z;
         }
 
-        if (rotation) {
-            model.rotation.x += rotation.x;
-            model.rotation.y += rotation.y;
-            model.rotation.z += rotation.z;
+        if (geo.rotation) {
+            model.rotation.x += geo.rotation.x;
+            model.rotation.y += geo.rotation.y;
+            model.rotation.z += geo.rotation.z;
         }
 
-        model.scale.set(scale, scale, scale);
+        model.scale.set(geo.scale, geo.scale, geo.scale);
     }
 
     return (<>

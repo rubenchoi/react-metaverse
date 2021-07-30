@@ -74,7 +74,7 @@ export function CharacterPage() {
       <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
         <CharacterViewer
           character={character}
-          scale={scale}
+          geo={{ scale: scale }}
         />
         <div >
           <Button color='info' outline onClick={() => setCharacter(undefined)}
