@@ -14,20 +14,8 @@ const settings = {
     character: 'sample.fbx',
     geo: { scale: 0.1, position: { x: 0, y: -40, z: -20 } }
   },
-  'mirae': {
-    character: 'Mirae-Remesh.fbx',
-    geo: {
-      scale: 0.1, position: { x: 0, y: -10, z: 0 }
-    },
-  },
-  'cartoon': {
-    character: 'CartoonRemesh.fbx',
-    geo: {
-      scale: 0.1, position: { x: 0, y: -10, z: 0 }
-    },
-  },
   'test': {
-    character: 'Basic-PBR.fbx',
+    character: 'test.fbx',
     geo: {
       scale: 0.1, position: { x: 0, y: -10, z: 0 }
     },
