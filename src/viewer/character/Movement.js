@@ -9,7 +9,7 @@ let blinkTimer;
 let blinkToClose = true;
 
 function Movement(props) {
-    const [blink, setBlink] = useState(false);
+    const [blink, setBlink] = useState(true);
     const [showDetail, setShowDetail] = useState(props.showDetail);
 
     useEffect(() => {
@@ -40,12 +40,20 @@ function Movement(props) {
         }
 
         props.character.traverse(parseRig);
+
+        return () => {
+            blinkTimer && clearInterval(blinkTimer);
+        }
     }, []);
 
     useEffect(() => {
         if (blink) {
             blinkTimer = setInterval(() => {
-                moveBlink();
+                try {
+                    moveBlink();
+                } catch (err) {
+                    clearInterval(blinkTimer);
+                }
             }, 100);
         } else {
             clearInterval(blinkTimer);
@@ -98,7 +106,7 @@ function Movement(props) {
                 <div style={{ position: 'abolute', bottom: 0, right: 0, color: 'black', background: 'rgba(235, 143, 52, 0.4)' }} onClick={() => setShowDetail(false)}><Icon.ChevronLeft /></div>
             </>
             :
-            <div style={{ background: 'rgba(235, 143, 52, 0.4)' }} onClick={() => setShowDetail(true)}>
+            <div style={{ display: props.hideAll ? 'none' : 'block', background: 'rgba(235, 143, 52, 0.4)' }} onClick={() => setShowDetail(true)}>
                 <Icon.ChevronRight />
             </div>
         }

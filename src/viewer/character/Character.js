@@ -9,16 +9,15 @@ import DatGuiComponent from './DatGuiComponent';
 import Animation from './Animation';
 import Movement from './Movement';
 
-const ObjectsToDisableTransparency = [
-    'Short_ponytail', 'Half_up', 'hair'
+const MaterialsToDisableTransparency = [
+    'Hair_Transparency',
+    'long_straight_Transparency'
 ]
 
-const MaterialsToDisableTransparency = [
-    'Hair_Transparency'
-]
+let g_model;
 
 function Character(props) {
-    const [animationIndex, setAnimationIndex] = useState(-1);
+    const [animationIndex, setAnimationIndex] = useState(8);
     const [character, setCharacter] = useState(undefined);
 
     useEffect(() => {
@@ -35,6 +34,7 @@ function Character(props) {
                     model.traverse(parseRig);
                     postprocess({ model: model, geo: props.geo });
                     setCharacter(model);
+                    g_model = model;
                     resolve(model);
                 })
             );
@@ -48,13 +48,16 @@ function Character(props) {
         }
 
         init();
+
+        return () => dispose(g_model);
     }, []);
 
     const updateMaterial = (name, mat) => {
         MaterialsToDisableTransparency.forEach((item) => {
-            if (mat.name.includes(item)) {
+            if (mat.name === item) {
                 console.log("::MATERIAL[" + name + "] " + mat.name + " transparent to false");
                 mat.transparent = false;
+                mat.alphaMap = null;
                 return;
             }
         })
@@ -68,21 +71,11 @@ function Character(props) {
                     obj.castShadow = true;
                     obj.receiveShadow = true;
 
-                    // let isToChangeMaterial;
-                    // ObjectsToDisableTransparency.forEach((m) => {
-                    //     if (obj.name.includes(m)) {
-                    //         isToChangeMaterial = true;
-                    //         return;
-                    //     }
-                    // })
-                    // if (isToChangeMaterial) 
-                    {
-                        const material = obj.material;
-                        if (Array.isArray(material)) {
-                            material.forEach(m => updateMaterial(obj.name, m));
-                        } else {
-                            updateMaterial(obj.name, material);
-                        }
+                    const material = obj.material;
+                    if (Array.isArray(material)) {
+                        material.forEach(m => updateMaterial(obj.name, m));
+                    } else {
+                        updateMaterial(obj.name, material);
                     }
                     break;
                 case "Bone":
@@ -100,25 +93,87 @@ function Character(props) {
     }
 
     const postprocess = ({ model, geo }) => {
-        if (geo.position) {
+        if (geo && geo.position) {
             model.position.x += geo.position.x;
             model.position.y += geo.position.y;
             model.position.z += geo.position.z;
         }
 
-        if (geo.rotation) {
+        if (geo && geo.rotation) {
             model.rotation.x += geo.rotation.x;
             model.rotation.y += geo.rotation.y;
             model.rotation.z += geo.rotation.z;
         }
 
-        model.scale.set(geo.scale, geo.scale, geo.scale);
+        if (geo && geo.scale) {
+            model.scale.set(geo.scale, geo.scale, geo.scale);
+        }
     }
+
+    const dispose = (model) => {
+        const disposeHierarchy = (node, callback) => {
+            for (var i = node.children.length - 1; i >= 0; i--) {
+                var child = node.children[i];
+                disposeHierarchy(child, callback);
+                callback(child);
+            }
+        }
+
+        try {
+            disposeHierarchy(model, (node) => {
+                if (node instanceof THREE.Mesh || node instanceof THREE.SkinnedMesh) {
+                    if (node.geometry) {
+                        node.geometry.dispose();
+                    }
+
+                    if (node.material) {
+                        if (node.material instanceof THREE.MeshFaceMaterial) {
+                            $.each(node.material.materials, function (idx, mtrl) {
+                                if (mtrl.map) mtrl.map.dispose();
+                                if (mtrl.lightMap) mtrl.lightMap.dispose();
+                                if (mtrl.bumpMap) mtrl.bumpMap.dispose();
+                                if (mtrl.normalMap) mtrl.normalMap.dispose();
+                                if (mtrl.specularMap) mtrl.specularMap.dispose();
+                                if (mtrl.envMap) mtrl.envMap.dispose();
+                                if (mtrl.alphaMap) mtrl.alphaMap.dispose();
+                                if (mtrl.aoMap) mtrl.aoMap.dispose();
+                                if (mtrl.displacementMap) mtrl.displacementMap.dispose();
+                                if (mtrl.emissiveMap) mtrl.emissiveMap.dispose();
+                                if (mtrl.gradientMap) mtrl.gradientMap.dispose();
+                                if (mtrl.metalnessMap) mtrl.metalnessMap.dispose();
+                                if (mtrl.roughnessMap) mtrl.roughnessMap.dispose();
+
+                                mtrl.dispose();
+                            });
+                        }
+                        else {
+                            if (node.material.map) node.material.map.dispose();
+                            if (node.material.lightMap) node.material.lightMap.dispose();
+                            if (node.material.bumpMap) node.material.bumpMap.dispose();
+                            if (node.material.normalMap) node.material.normalMap.dispose();
+                            if (node.material.specularMap) node.material.specularMap.dispose();
+                            if (node.material.envMap) node.material.envMap.dispose();
+                            if (node.material.alphaMap) node.material.alphaMap.dispose();
+                            if (node.material.aoMap) node.material.aoMap.dispose();
+                            if (node.material.displacementMap) node.material.displacementMap.dispose();
+                            if (node.material.emissiveMap) node.material.emissiveMap.dispose();
+                            if (node.material.gradientMap) node.material.gradientMap.dispose();
+                            if (node.material.metalnessMap) node.material.metalnessMap.dispose();
+                            if (node.material.roughnessMap) node.material.roughnessMap.dispose();
+
+                            node.material.dispose();
+                        }
+                    }
+                }
+            })
+        } catch (err) { console.log(err) };
+    }
+
 
     return (<>
         {character &&
             <>
-                <div style={{ position: 'fixed', top: '5%', right: 0 }} >
+                <div style={{ display: props.hideAll ? 'none' : 'block', position: 'fixed', top: '5%', right: 0 }} >
                     <DatGuiComponent
                         character={character}
                         onChangeAnimation={setAnimationIndex}
@@ -132,6 +187,7 @@ function Character(props) {
                 <div style={{ position: 'fixed', bottom: '5%', left: 0 }}>
                     <Movement
                         character={character}
+                        hideAll={props.hideAll}
                     />
                 </div>
             </>

@@ -6,6 +6,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Character from '../character/Character';
 import Decorator from '../Decorator';
 
+let stopped;
+
 const Status = {
     INITIALIZING: 'initializing...',
     IDLE: 'idle'
@@ -26,14 +28,19 @@ function CharacterViewer(props) {
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
 
-            console.log("w:" + width + " h:" + height);
-
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(50, width / height, 0.01, 1000);
 
-            camera.position.set(0, 10, 18);
-            // camera.rotation.set(0.15, 0.02, -0.3);
+            if (props.cam) {
+                camera.position.set(props.cam.position.x, props.cam.position.y, props.cam.position.z);
+                camera.rotation.set(props.cam.rotation.x, props.cam.rotation.y, props.cam.rotation.z);
+            } else {
+                camera.position.set(0, 10, 18);
+                camera.rotation.set(-0.15, 0.03, 0);
+            }
             camera.updateProjectionMatrix();
+
+            console.log("w:" + width + " h:" + height, camera.position, camera.rotation);
 
             const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true, canvas: canvas });
             renderer.shadowMap.enabled = true;
@@ -41,14 +48,20 @@ function CharacterViewer(props) {
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setClearColor(0x000000, 0);
 
-            const orbit = new OrbitControls(camera, renderer.domElement);
-            orbit.enableZoom = true;
-            orbit.enabled = true;
+            if (!props.disableOrbit) {
+                const orbit = new OrbitControls(camera, renderer.domElement);
+                orbit.enableZoom = true;
+                orbit.enabled = true;
+            }
 
             setCg({ canvas: canvas, scene: scene, camera: camera, renderer: renderer });
         }
 
         init();
+
+        return () => {
+            stopped = true;
+        }
     }, []);
 
     useEffect(() => {
@@ -58,8 +71,13 @@ function CharacterViewer(props) {
 
         const animate = () => {
             setDelta(clock.getDelta());
+            if (props.cam && props.cam.lookAt) {
+                cg.camera.lookAt(new THREE.Vector3(props.cam.lookAt.x, props.cam.lookAt.y, props.cam.lookAt.z));
+            }
             cg.renderer.render(cg.scene, cg.camera);
-            requestAnimationFrame(animate);
+            if (!stopped) {
+                requestAnimationFrame(animate);
+            }
         }
 
         animate();
@@ -87,7 +105,8 @@ function CharacterViewer(props) {
                     character={props.character}
                     geo={props.geo}
                     delta={delta}
-                    onLoad={() => { setStatus(Status.IDLE) && props.onLoad && props.onLoad(refCanvas) }}
+                    hideAll={props.hideAll}
+                    onLoad={() => { setStatus(Status.IDLE); props.onLoad && props.onLoad(refCanvas); }}
                 />
             }
         </>
