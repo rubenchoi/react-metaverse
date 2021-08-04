@@ -3,7 +3,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import * as Icon from 'react-feather';
 import { Button } from 'reactstrap';
 
-const target = { bones: {}, morphs: {} };
+let target;
 
 let blinkTimer;
 let blinkToClose = true;
@@ -39,12 +39,12 @@ function Movement(props) {
             } catch (e) { }
         }
 
+        target = { bones: {}, morphs: {} };
         props.character.traverse(parseRig);
-
         return () => {
             blinkTimer && clearInterval(blinkTimer);
         }
-    }, []);
+    }, [props.character]);
 
     useEffect(() => {
         if (blink) {

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { Fragment, useEffect, useRef, useState } from 'react';
-import { Spinner } from 'reactstrap';
+import { Spinner, Progress } from 'reactstrap';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Character from '../character/Character';
@@ -17,6 +17,9 @@ function CharacterViewer(props) {
     const [status, setStatus] = useState(Status.INITIALIZING);
     const [cg, setCg] = useState(undefined);
     const [delta, setDelta] = useState(0);
+    const [loading, setLoading] = useState(undefined);
+
+    THREE.Cache.enabled = true;
 
     const clock = new THREE.Clock();
 
@@ -83,6 +86,10 @@ function CharacterViewer(props) {
         animate();
     }, [cg]);
 
+    useEffect(() => {
+        setStatus(Status.INITIALIZING);
+    }, [props.character]);
+
     return (<>
         <canvas ref={refCanvas} style={{ display: props.canvas ? 'none' : 'block', width: '100%', height: '100%', border: '1px dashed gray' }} />
 
@@ -106,8 +113,15 @@ function CharacterViewer(props) {
                     geo={props.geo}
                     delta={delta}
                     hideAll={props.hideAll}
+                    onProgress={p => setLoading(p)}
                     onLoad={() => { setStatus(Status.IDLE); props.onLoad && props.onLoad(refCanvas); }}
                 />
+            }
+
+            {loading &&
+                <div style={{ position: 'absolute', top: '50%', zIndex: 9, textAlign: "center", backgroundColor: 'rgba(255,255,255,0.8)' }}>
+                    <Progress striped bar color="danger" value={loading} />
+                </div>
             }
         </>
         }

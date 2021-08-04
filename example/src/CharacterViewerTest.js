@@ -14,8 +14,8 @@ const settings = {
     character: 'sample.fbx',
     geo: { scale: 0.1, position: { x: 0, y: -40, z: -20 } }
   },
-  'test': {
-    character: 'test.fbx',
+  'Chloe': {
+    character: 'Chloe.fbx',
     geo: {
       scale: 0.1, position: { x: 0, y: -10, z: 0 }
     },
@@ -32,12 +32,24 @@ const settings = {
 }
 
 const App = () => {
+  const [character, setCharacter] = React.useState('sample')
+
   const canvasRef = React.useRef(null);
 
-  const p = settings['mirae'];
+  const p = settings[character];
+  console.log(p);
 
   return (
     <>
+      <div style={{ padding: '2em' }}>
+        <p>Selected character: {character}</p>
+        <select onChange={e => { console.log("e.target.value", e.target.value); setCharacter(e.target.value) }}>
+          <option value='sample'>sample</option>
+          <option value='Chloe'>Chloe</option>
+        </select>
+        <hr />
+      </div>
+
       <canvas
         ref={canvasRef}
         style={{ width: p.canvas ? p.canvas.width : '100%', height: p.canvas ? p.canvas.height : '100%', border: '1px solid green' }}

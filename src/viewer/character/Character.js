@@ -8,19 +8,44 @@ import Constant from '../../Constant';
 import DatGuiComponent from './DatGuiComponent';
 import Animation from './Animation';
 import Movement from './Movement';
+import ResourceTracker from './ResourceTracker';
 
 const MaterialsToDisableTransparency = [
     'Hair_Transparency',
     'long_straight_Transparency'
 ]
 
-let g_model;
+const DISPOSE_WHEN_MODEL_CHANGED = true;
+
+// let g_model;
+let g_loader;
 
 function Character(props) {
     const [animationIndex, setAnimationIndex] = useState(8);
     const [character, setCharacter] = useState(undefined);
 
+    const resetManager = new ResourceTracker();
+
     useEffect(() => {
+        return () => {
+            try {
+                // resetManager.dispose();
+                console.log("Character unmounted.");
+                g_loader && g_loader.abort();
+            } catch (err) { console.log(err) }
+        }
+    }, []);
+
+    useEffect(() => {
+        const removeAllModels = () => {
+            props.scene.children.forEach(m => {
+                if (m.characterType === 'character') {
+                    console.log("removed character ", m.name);
+                    props.scene.remove(m);
+                }
+            });
+        }
+
         const loadModel = (fullpath) => {
             console.log("load character: ", fullpath);
             let manager = new THREE.LoadingManager();
@@ -29,28 +54,41 @@ function Character(props) {
             let isFBX = (fullpath.includes('fbx') || fullpath.includes('FBX'));
             let loader = isFBX ? new FBXLoader(manager) : new GLTFLoader();
             return new Promise((resolve, reject) =>
-                loader.load(fullpath, (loaded) => {
-                    let model = loaded.scene || loaded;
-                    model.traverse(parseRig);
-                    postprocess({ model: model, geo: props.geo });
-                    setCharacter(model);
-                    g_model = model;
-                    resolve(model);
-                })
+                g_loader = loader.load(fullpath,
+                    (loaded) => {
+                        let model = loaded.scene || loaded;
+                        model.name = fullpath;
+                        model.characterType = 'character';
+                        model.traverse(parseRig);
+                        postprocess({ model: model, geo: props.geo });
+                        setCharacter(model);
+                        // g_model = model;
+                        // const track = resetManager.track.bind(resetManager);
+                        // const root = track()
+                        resolve(model);
+                    },
+                    (event) => {
+                        const p = Math.floor(event.loaded * 100 / event.total);
+                        console.log("loading " + p + '%')
+                        props.onProgress && props.onProgress(p);
+                    },
+                    (err) => console.log("error: ", err)
+                )
             );
         }
 
-        async function init() {
-            const model = await loadModel(Constant.BASE_URL + '/character/' + props.character);
-            props.scene.add(model);
-            console.log("onLoad: model", model);
-            props.onLoad && props.onLoad('loaded');
+        function init() {
+            loadModel(Constant.BASE_URL + '/character/' + props.character).then(model => {
+                props.scene.add(model);
+                console.log("onLoad: model", model);
+                props.onLoad && props.onLoad('loaded');
+            });
         }
 
+        console.log("---------------------------------------------character changed : ", props.scene);
+        removeAllModels();
         init();
-
-        return () => dispose(g_model);
-    }, []);
+    }, [props.character]);
 
     const updateMaterial = (name, mat) => {
         MaterialsToDisableTransparency.forEach((item) => {
@@ -110,66 +148,6 @@ function Character(props) {
         }
     }
 
-    const dispose = (model) => {
-        const disposeHierarchy = (node, callback) => {
-            for (var i = node.children.length - 1; i >= 0; i--) {
-                var child = node.children[i];
-                disposeHierarchy(child, callback);
-                callback(child);
-            }
-        }
-
-        try {
-            disposeHierarchy(model, (node) => {
-                if (node instanceof THREE.Mesh || node instanceof THREE.SkinnedMesh) {
-                    if (node.geometry) {
-                        node.geometry.dispose();
-                    }
-
-                    if (node.material) {
-                        if (node.material instanceof THREE.MeshFaceMaterial) {
-                            $.each(node.material.materials, function (idx, mtrl) {
-                                if (mtrl.map) mtrl.map.dispose();
-                                if (mtrl.lightMap) mtrl.lightMap.dispose();
-                                if (mtrl.bumpMap) mtrl.bumpMap.dispose();
-                                if (mtrl.normalMap) mtrl.normalMap.dispose();
-                                if (mtrl.specularMap) mtrl.specularMap.dispose();
-                                if (mtrl.envMap) mtrl.envMap.dispose();
-                                if (mtrl.alphaMap) mtrl.alphaMap.dispose();
-                                if (mtrl.aoMap) mtrl.aoMap.dispose();
-                                if (mtrl.displacementMap) mtrl.displacementMap.dispose();
-                                if (mtrl.emissiveMap) mtrl.emissiveMap.dispose();
-                                if (mtrl.gradientMap) mtrl.gradientMap.dispose();
-                                if (mtrl.metalnessMap) mtrl.metalnessMap.dispose();
-                                if (mtrl.roughnessMap) mtrl.roughnessMap.dispose();
-
-                                mtrl.dispose();
-                            });
-                        }
-                        else {
-                            if (node.material.map) node.material.map.dispose();
-                            if (node.material.lightMap) node.material.lightMap.dispose();
-                            if (node.material.bumpMap) node.material.bumpMap.dispose();
-                            if (node.material.normalMap) node.material.normalMap.dispose();
-                            if (node.material.specularMap) node.material.specularMap.dispose();
-                            if (node.material.envMap) node.material.envMap.dispose();
-                            if (node.material.alphaMap) node.material.alphaMap.dispose();
-                            if (node.material.aoMap) node.material.aoMap.dispose();
-                            if (node.material.displacementMap) node.material.displacementMap.dispose();
-                            if (node.material.emissiveMap) node.material.emissiveMap.dispose();
-                            if (node.material.gradientMap) node.material.gradientMap.dispose();
-                            if (node.material.metalnessMap) node.material.metalnessMap.dispose();
-                            if (node.material.roughnessMap) node.material.roughnessMap.dispose();
-
-                            node.material.dispose();
-                        }
-                    }
-                }
-            })
-        } catch (err) { console.log(err) };
-    }
-
-
     return (<>
         {character &&
             <>
@@ -196,3 +174,4 @@ function Character(props) {
 }
 
 export default Character;
+

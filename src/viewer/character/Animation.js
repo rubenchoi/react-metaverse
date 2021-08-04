@@ -8,10 +8,14 @@ let animationAction;
 
 function Animation(props) {
     useEffect(() => {
+        return () => animationAction && animationAction.stop();
+    }, []);
+
+    useEffect(() => {
         //WARNING - animationMixer and animations cannot be applied to useState
         animationMixer = new THREE.AnimationMixer(props.character);
         animations = props.character.animations;
-    }, []);
+    }, [props.character]);
 
     useEffect(() => {
         animationMixer && animationMixer.update(props.delta);

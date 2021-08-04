@@ -50,6 +50,7 @@ function Decorator(props) {
             let floor = new THREE.Mesh(floorGeometry, floorMaterial);
             floor.rotation.x = -0.5 * Math.PI;
             floor.receiveShadow = true;
+            floor.name = 'ground';
             props.scene.add(floor);
         }
 

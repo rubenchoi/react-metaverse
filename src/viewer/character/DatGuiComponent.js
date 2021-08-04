@@ -65,8 +65,12 @@ function DatGuiComponent(props) {
         props.character.traverse(parseRig);
         generateAnimations(props.animations || props.character.animations);
 
-        ref.current.appendChild(gui.domElement);
-    }, []);
+        const dom = ref.current;
+        if (dom.hasChildNodes()) {
+            dom.removeChild(dom.firstChild);
+        }
+        dom.appendChild(gui.domElement);
+    }, [props.character]);
 
     return (<div ref={ref} style={{ width: 'fit-content' }} />)
 }

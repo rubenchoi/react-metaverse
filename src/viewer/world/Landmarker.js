@@ -8,6 +8,7 @@ function Landmarker(props) {
             const geo = new THREE.PlaneGeometry(10, 10, 1);
             const mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(geo, mat);
+            mesh.name = 'landmark';
             scene.add(mesh);
             mesh.position.set(x, y, z);
             mesh.userData = userData;
