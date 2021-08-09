@@ -21,7 +21,7 @@ const DISPOSE_WHEN_MODEL_CHANGED = true;
 let g_loader;
 
 function Character(props) {
-    const [animationIndex, setAnimationIndex] = useState(8);
+    const [animationIndex, setAnimationIndex] = useState(0);
     const [character, setCharacter] = useState(undefined);
 
     const resetManager = new ResourceTracker();

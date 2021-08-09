@@ -22,10 +22,11 @@ function Decorator(props) {
             if (props.hdri) {
                 const filepath = BASE_URL_HDRI + props.hdri;
                 console.log('setBackground: loading... ' + filepath);
+ 
                 new RGBELoader()
                     .setDataType(THREE.UnsignedByteType)
                     .setPath(BASE_URL_HDRI)
-                    .load('small_harbor_01_1k.hdr', (texture) => {
+                    .load(filepath, (texture) => {
                         const pmremGenerator = new THREE.PMREMGenerator(props.renderer);
                         const envMap = pmremGenerator.fromEquirectangular(texture).texture;
                         pmremGenerator.compileEquirectangularShader();
