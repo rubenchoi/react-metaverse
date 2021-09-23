@@ -16,8 +16,7 @@ const settings = {
     geo: { scale: 0.1, position: { x: 0, y: -40, z: -20 } }
   },
   'test': {
-    // character: 'Asian-PrimeHair-PBR.fbx',
-    character: 'lge.fbx',
+    character: 'Asian-PrimeHair-PBR.fbx',
     geo: {
       scale: 0.1, position: { x: 0, y: -10, z: 0 }
     },
@@ -46,7 +45,7 @@ const App = () => {
   return (
     <>
       {fullscreen ||
-        <Container style={{ padding: '2em', border: '1px solid gray', margin: '2em', width: 'fit-content' }}>
+        <Container style={{ padding: '2em', border: '1px solid gray', margin: '2em', width: 'fit-content', fontSize: '1em' }}>
           <Row>
             <Col xs='6'>Animation </Col>
             <Col xs='6'>
@@ -60,19 +59,25 @@ const App = () => {
           <Row>
             <Col xs='6'>Head(Bone)</Col>
             <Col xs='2'>
-              <Button color="warning" onClick={() => setRig({ bone: [{ 'head:r:z:a': 0.3 }, { 'upperarm_r:r:x': 1.5 }] })}>◀</Button>
+              <Button color="warning" onClick={() => setRig({ bone: [{ 'CC_Base_Head:r:z:a': 0.3 }, { 'head:r:z:a': 0.3 }, { 'upperarm_r:r:x': 1.5 }] })}>&lt;</Button>
             </Col>
             <Col xs='2'>
-              <Button color="warning" onClick={() => setRig({ bone: [{ 'head:r:z:a': -0.3 }, { 'upperarm_r:r:x': 0 }] })}>▶</Button>
+              <Button color="warning" onClick={() => setRig({ bone: [{ 'CC_Base_Head:r:z:a': -0.3 }, { 'head:r:z:a': -0.3 }, { 'upperarm_r:r:x': 0 }] })}>&gt;</Button>
             </Col>
           </Row>
           <Row>
             <Col xs='6'>Face(MorphTarget)</Col>
             <Col xs='2'>
-              <Button color="primary" onClick={() => setRig({ morphTarget: [{ 'Explosive': 1 }, { 'Eye_Blink': 1 }, { 'Lip_Open': 1 }] })}>A</Button>
+              <Button color="primary" onClick={() => setRig({
+                morphTarget: [{ 'Explosive:CC_Game_Body': 1 }, { 'Eye_Blink:CC_Game_Body': 1 }, { 'Lip_Open:CC_Game_Body': 1 },
+                { 'Explosive:CC_Base_Body': 1 }, { 'Eye_Blink:CC_Base_Body': 1 }, { 'Lip_Open:CC_Base_Body': 1 }]
+              })}>A</Button>
             </Col>
             <Col xs='2'>
-              <Button color="primary" onClick={() => setRig({ morphTarget: [{ 'Explosive': 0 }, { 'Eye_Blink': 0 }, { 'Lip_Open': 0 }] })}>B</Button>
+              <Button color="primary" onClick={() => setRig({
+                morphTarget: [{ 'Explosive:CC_Game_Body': 0 }, { 'Eye_Blink:CC_Game_Body': 0 }, { 'Lip_Open:CC_Game_Body': 0 },
+                { 'Explosive:CC_Base_Body': 0 }, { 'Eye_Blink:CC_Base_Body': 0 }, { 'Lip_Open:CC_Base_Body': 0 }]
+              })}>B</Button>
             </Col>
           </Row>
         </Container>

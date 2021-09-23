@@ -84,14 +84,18 @@ function Character(props) {
         const moveBone = (arrays) => {
             props.debug && console.log("moveBone()", arrays);
             arrays.forEach((item, idx) => {
-                for (const [key, value] of Object.entries(item)) {
-                    let [name, positionOrRotate, axis, add] = key.split(':');
-                    props.debug && console.log("moveBone[" + idx + "]", name, positionOrRotate, axis, value, add, rigInfo.bone);
-                    if (add) {
-                        rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] += value;
-                    } else {
-                        rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] = value;
+                try {
+                    for (const [key, value] of Object.entries(item)) {
+                        let [name, positionOrRotate, axis, add] = key.split(':');
+                        props.debug && console.log("moveBone[" + idx + "]", name, positionOrRotate, axis, value, add, rigInfo.bone);
+                        if (add) {
+                            rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] += value;
+                        } else {
+                            rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] = value;
+                        }
                     }
+                } catch (error) {
+                    props.debug && console.log("error: moveBone failed:", item);
                 }
             });
         }
@@ -99,10 +103,14 @@ function Character(props) {
         const moveMorphTarget = (arrays) => {
             props.debug && console.log("moveTarget()", arrays);
             arrays.forEach((item) => {
-                for (const [key, value] of Object.entries(item)) {
-                    props.debug && console.log("moveTarget-" + key + " <= ", key, value);
-                    let pair = rigInfo.morphTarget[key];
-                    pair.bone.morphTargetInfluences[pair.index] = value;
+                try {
+                    for (const [key, value] of Object.entries(item)) {
+                        props.debug && console.log("moveTarget-" + key + " <= ", key, value);
+                        let pair = rigInfo.morphTarget[key];
+                        pair.bone.morphTargetInfluences[pair.index] = value;
+                    }
+                } catch (error) {
+                    props.debug && console.log("error: moveMorphTarget failed:", item);
                 }
             });
         }

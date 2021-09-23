@@ -34,7 +34,7 @@ function DatGuiComponent(props) {
                                     max = max === 0 ? 1 : max;
                                     guiMorph.add(bone.morphTargetInfluences, idx, 0, max).name(key + " [" + bone.name + "]");
 
-                                    riggings.morphTarget[key] = { bone: bone, index: idx };
+                                    riggings.morphTarget[key + ':' + bone.name] = { bone: bone, index: idx };
                                 })
                             } catch (err) {
                                 props.debug && console.log(err);
