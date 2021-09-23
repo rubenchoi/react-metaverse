@@ -10,6 +10,7 @@
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
+    "@rubenchoi/react-mqtt": "^0.7.2",
     "react": "file:../node_modules/react",
     "react-dom": "file:../node_modules/react-dom",
     "react-metaverse": "file:..",

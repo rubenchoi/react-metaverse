@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { CharacterViewer } from 'react-metaverse';
 import { Button, Row, Col, Container } from 'reactstrap';
+import MqttComponent from '@rubenchoi/react-mqtt'
 
 /**
  * character - string - [Required] a filename under public/character.
@@ -33,6 +34,19 @@ const settings = {
   }
 }
 
+const TEST = {
+  headTurnLeft: { bone: [{ 'CC_Base_Head:r:z:a': 0.3 }, { 'head:r:z:a': 0.3 }, { 'upperarm_r:r:x': 1.5 }] },
+  headTurnRight: { bone: [{ 'CC_Base_Head:r:z:a': -0.3 }, { 'head:r:z:a': -0.3 }, { 'upperarm_r:r:x': 0 }] },
+  faceA: {
+    morphTarget: [{ 'Explosive:CC_Game_Body': 1 }, { 'Eye_Blink:CC_Game_Body': 1 }, { 'Lip_Open:CC_Game_Body': 1 },
+    { 'Explosive:CC_Base_Body': 1 }, { 'Eye_Blink:CC_Base_Body': 1 }, { 'Lip_Open:CC_Base_Body': 1 }]
+  },
+  faceB: {
+    morphTarget: [{ 'Explosive:CC_Game_Body': 0 }, { 'Eye_Blink:CC_Game_Body': 0 }, { 'Lip_Open:CC_Game_Body': 0 },
+    { 'Explosive:CC_Base_Body': 0 }, { 'Eye_Blink:CC_Base_Body': 0 }, { 'Lip_Open:CC_Base_Body': 0 }]
+  }
+}
+
 const App = () => {
   const [character,] = useState('test');
   const [fullscreen,] = useState(false);
@@ -59,25 +73,19 @@ const App = () => {
           <Row>
             <Col xs='6'>Head(Bone)</Col>
             <Col xs='2'>
-              <Button color="warning" onClick={() => setRig({ bone: [{ 'CC_Base_Head:r:z:a': 0.3 }, { 'head:r:z:a': 0.3 }, { 'upperarm_r:r:x': 1.5 }] })}>&lt;</Button>
+              <Button color="warning" onClick={() => setRig(TEST.headTurnLeft)}>&lt;</Button>
             </Col>
             <Col xs='2'>
-              <Button color="warning" onClick={() => setRig({ bone: [{ 'CC_Base_Head:r:z:a': -0.3 }, { 'head:r:z:a': -0.3 }, { 'upperarm_r:r:x': 0 }] })}>&gt;</Button>
+              <Button color="warning" onClick={() => setRig(TEST.headTurnRight)}>&gt;</Button>
             </Col>
           </Row>
           <Row>
             <Col xs='6'>Face(MorphTarget)</Col>
             <Col xs='2'>
-              <Button color="primary" onClick={() => setRig({
-                morphTarget: [{ 'Explosive:CC_Game_Body': 1 }, { 'Eye_Blink:CC_Game_Body': 1 }, { 'Lip_Open:CC_Game_Body': 1 },
-                { 'Explosive:CC_Base_Body': 1 }, { 'Eye_Blink:CC_Base_Body': 1 }, { 'Lip_Open:CC_Base_Body': 1 }]
-              })}>A</Button>
+              <Button color="primary" onClick={() => setRig(TEST.faceA)}>A</Button>
             </Col>
             <Col xs='2'>
-              <Button color="primary" onClick={() => setRig({
-                morphTarget: [{ 'Explosive:CC_Game_Body': 0 }, { 'Eye_Blink:CC_Game_Body': 0 }, { 'Lip_Open:CC_Game_Body': 0 },
-                { 'Explosive:CC_Base_Body': 0 }, { 'Eye_Blink:CC_Base_Body': 0 }, { 'Lip_Open:CC_Base_Body': 0 }]
-              })}>B</Button>
+              <Button color="primary" onClick={() => setRig(TEST.faceB)}>B</Button>
             </Col>
           </Row>
         </Container>
@@ -97,6 +105,22 @@ const App = () => {
         canvas={canvasRef}
         hideAll={fullscreen}
         rig={rig}
+      />
+
+      <MqttComponent
+        subscribeTo={[
+          'characterMovement'
+        ]}
+        // publish={data}
+        callbacks={{
+          onConnect: (isConnected = true) => console.log('MQTT connected: ' + isConnected),
+          onMessage: (topic, payload) => {
+            console.log("onMessage: topic=" + topic, payload);
+            setRig(JSON.parse(payload));
+          }
+        }}
+        settings={true}
+        log={true}
       />
     </>
   );
