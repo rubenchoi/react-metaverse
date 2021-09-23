@@ -7,32 +7,26 @@ import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
 import Constant from '../../Constant';
 import DatGuiComponent from './DatGuiComponent';
 import Animation from './Animation';
-import Movement from './Movement';
-import ResourceTracker from './ResourceTracker';
 
 const MaterialsToDisableTransparency = [
     'Hair_Transparency',
     'long_straight_Transparency'
 ]
 
-const DISPOSE_WHEN_MODEL_CHANGED = true;
-
-// let g_model;
 let g_loader;
 
 function Character(props) {
     const [animationIndex, setAnimationIndex] = useState(0);
     const [character, setCharacter] = useState(undefined);
+    const [rigInfo, setRigInfo] = useState(undefined);
 
-    const resetManager = new ResourceTracker();
 
     useEffect(() => {
         return () => {
             try {
-                // resetManager.dispose();
-                console.log("Character unmounted.");
+                props.debug && console.log("Character unmounted.");
                 g_loader && g_loader.abort();
-            } catch (err) { console.log(err) }
+            } catch (err) { props.debug && console.log(err) }
         }
     }, []);
 
@@ -40,14 +34,14 @@ function Character(props) {
         const removeAllModels = () => {
             props.scene.children.forEach(m => {
                 if (m.characterType === 'character') {
-                    console.log("removed character ", m.name);
+                    props.debug && console.log("removed character ", m.name);
                     props.scene.remove(m);
                 }
             });
         }
 
         const loadModel = (fullpath) => {
-            console.log("load character: ", fullpath);
+            props.debug && console.log("load character: ", fullpath);
             let manager = new THREE.LoadingManager();
             manager.addHandler(/\.tga$/i, new TGALoader());
 
@@ -62,38 +56,77 @@ function Character(props) {
                         model.traverse(parseRig);
                         postprocess({ model: model, geo: props.geo });
                         setCharacter(model);
-                        // g_model = model;
-                        // const track = resetManager.track.bind(resetManager);
-                        // const root = track()
                         resolve(model);
                     },
                     (event) => {
                         const p = Math.floor(event.loaded * 100 / event.total);
-                        console.log("loading " + p + '%')
-                        props.onProgress && props.onProgress(p);
+                        props.debug && console.log("loading " + p + '%')
+                        props.callbacks && props.callbacks.onProgress && props.callbacks.onProgress(p);
                     },
-                    (err) => console.log("error: ", err)
+                    (err) => props.debug && console.log("error: ", err)
                 )
             );
         }
 
-        function init() {
-            loadModel(Constant.BASE_URL + '/character/' + props.character).then(model => {
-                props.scene.add(model);
-                console.log("onLoad: model", model);
-                props.onLoad && props.onLoad('loaded');
+        removeAllModels();
+
+        loadModel(Constant.BASE_URL + '/character/' + props.character).then(model => {
+            props.scene.add(model);
+            props.debug && console.log("onLoad: model", model);
+            props.callbacks && props.callbacks.onLoad && props.callbacks.onLoad('loaded');
+        });
+
+        props.debug && console.log("scene loaded:", props.scene);
+
+    }, [props.character]);
+
+    useEffect(() => {
+        const moveBone = (arrays) => {
+            props.debug && console.log("moveBone()", arrays);
+            arrays.forEach((item, idx) => {
+                for (const [key, value] of Object.entries(item)) {
+                    let [name, positionOrRotate, axis, add] = key.split(':');
+                    props.debug && console.log("moveBone[" + idx + "]", name, positionOrRotate, axis, value, add, rigInfo.bone);
+                    if (add) {
+                        rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] += value;
+                    } else {
+                        rigInfo.bone[name][positionOrRotate === 'p' ? 'position' : 'rotation'][axis] = value;
+                    }
+                }
             });
         }
 
-        console.log("---------------------------------------------character changed : ", props.scene);
-        removeAllModels();
-        init();
-    }, [props.character]);
+        const moveMorphTarget = (arrays) => {
+            props.debug && console.log("moveTarget()", arrays);
+            arrays.forEach((item) => {
+                for (const [key, value] of Object.entries(item)) {
+                    props.debug && console.log("moveTarget-" + key + " <= ", key, value);
+                    let pair = rigInfo.morphTarget[key];
+                    pair.bone.morphTargetInfluences[pair.index] = value;
+                }
+            });
+        }
+
+        try {
+            if (props.rig.animation) {
+                props.debug && console.log("animation: ", props.rig.animation);
+                setAnimationIndex(props.rig.animation);
+            }
+            if (props.rig.bone) {
+                moveBone(props.rig.bone);
+            }
+            if (props.rig.morphTarget) {
+                moveMorphTarget(props.rig.morphTarget);
+            }
+        } catch (err) {
+            props.debug && console.log(err);
+        }
+    }, [props.rig]);
 
     const updateMaterial = (name, mat) => {
         MaterialsToDisableTransparency.forEach((item) => {
             if (mat.name === item) {
-                console.log("::MATERIAL[" + name + "] " + mat.name + " transparent to false");
+                props.debug && console.log("::MATERIAL[" + name + "] " + mat.name + " transparent to false");
                 mat.transparent = false;
                 mat.alphaMap = null;
                 return;
@@ -151,10 +184,18 @@ function Character(props) {
     return (<>
         {character &&
             <>
-                <div style={{ display: props.hideAll ? 'none' : 'block', position: 'fixed', top: '5%', right: 0 }} >
+                <div style={{ position: 'fixed', top: '5%', right: 0 }} >
                     <DatGuiComponent
+                        visible={!props.hideAll}
                         character={character}
-                        onChangeAnimation={setAnimationIndex}
+                        callbacks={{
+                            requestChangeAnimation: setAnimationIndex,
+                            onLoad: (info) => {
+                                setRigInfo(info);
+                                props.callbacks && props.callbacks.onMoveInfo && props.callbacks.onMoveInfo(info);
+                            }
+                        }}
+                        debug={false}
                     />
                 </div>
                 <Animation
@@ -162,12 +203,6 @@ function Character(props) {
                     delta={props.delta}
                     animationIndex={animationIndex}
                 />
-                <div style={{ position: 'fixed', bottom: '5%', left: 0 }}>
-                    <Movement
-                        character={character}
-                        hideAll={props.hideAll}
-                    />
-                </div>
             </>
         }
     </>);

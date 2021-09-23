@@ -19,13 +19,12 @@ function Decorator(props) {
         }
 
         const setBackground = (props) => {
-            if (props.hdri) {
+            try {
                 const filepath = BASE_URL_HDRI + props.hdri;
-                console.log('setBackground: loading... ' + filepath);
- 
+                props.debug && console.log('setBackground: loading... ' + filepath);
+
                 new RGBELoader()
                     .setDataType(THREE.UnsignedByteType)
-                    .setPath(BASE_URL_HDRI)
                     .load(filepath, (texture) => {
                         const pmremGenerator = new THREE.PMREMGenerator(props.renderer);
                         const envMap = pmremGenerator.fromEquirectangular(texture).texture;
@@ -37,7 +36,9 @@ function Decorator(props) {
                         texture.dispose();
                         pmremGenerator.dispose();
                     })
-            } else {
+            } catch (err) {
+                props.debug && console.log("error:", err);
+
                 props.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
                 props.scene.fog = new THREE.Fog(props.scene.background, 500, 10000);
             }

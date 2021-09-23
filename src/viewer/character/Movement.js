@@ -8,6 +8,7 @@ let target;
 let blinkTimer;
 let blinkToClose = true;
 
+//Deprecated - use DatGuiComponent
 function Movement(props) {
     const [blink, setBlink] = useState(true);
     const [showDetail, setShowDetail] = useState(props.showDetail);

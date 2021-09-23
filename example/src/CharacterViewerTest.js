@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { CharacterViewer } from 'react-metaverse';
+import { Button, Row, Col, Container } from 'reactstrap';
 
 /**
  * character - string - [Required] a filename under public/character.
@@ -16,7 +17,7 @@ const settings = {
   },
   'test': {
     // character: 'Asian-PrimeHair-PBR.fbx',
-    character: 'Cartoon.fbx',
+    character: 'lge.fbx',
     geo: {
       scale: 0.1, position: { x: 0, y: -10, z: 0 }
     },
@@ -26,33 +27,55 @@ const settings = {
       lookAt: { x: 0, y: 6, z: 0 },
     },
     canvas: {
-      width: '300px',
-      height: '300px'
+      width: '640px',
+      height: '480px'
     },
     hdri: 'small_harbor_01_1k.hdr',
   }
 }
 
 const App = () => {
-  const [character, setCharacter] = React.useState('test');
-  const [fullscreen,] = React.useState(true);
+  const [character,] = useState('test');
+  const [fullscreen,] = useState(false);
+  const [rig, setRig] = useState(undefined);
 
-  const canvasRef = React.useRef(null);
+  const canvasRef = useRef(null);
 
   const p = settings[character];
-  console.log(p);
 
   return (
     <>
       {fullscreen ||
-        <div style={{ padding: '2em' }}>
-          <p>Selected character: {character}</p>
-          <select onChange={e => { console.log("e.target.value", e.target.value); setCharacter(e.target.value) }}>
-            <option value='sample'>Sample</option>
-            <option value='test'>Tester</option>
-          </select>
-          <hr />
-        </div>
+        <Container style={{ padding: '2em', border: '1px solid gray', margin: '2em', width: 'fit-content' }}>
+          <Row>
+            <Col xs='6'>Animation </Col>
+            <Col xs='6'>
+              <select onChange={e => setRig({ animation: e.target.value })}>
+                <option value='-1'>Stop Animation</option>
+                <option value='1'>Animation 1</option>
+                <option value='2'>Animation 2</option>
+              </select>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs='6'>Head(Bone)</Col>
+            <Col xs='2'>
+              <Button color="warning" onClick={() => setRig({ bone: [{ 'head:r:z:a': 0.3 }, { 'upperarm_r:r:x': 1.5 }] })}>◀</Button>
+            </Col>
+            <Col xs='2'>
+              <Button color="warning" onClick={() => setRig({ bone: [{ 'head:r:z:a': -0.3 }, { 'upperarm_r:r:x': 0 }] })}>▶</Button>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs='6'>Face(MorphTarget)</Col>
+            <Col xs='2'>
+              <Button color="primary" onClick={() => setRig({ morphTarget: [{ 'Explosive': 1 }, { 'Eye_Blink': 1 }, { 'Lip_Open': 1 }] })}>A</Button>
+            </Col>
+            <Col xs='2'>
+              <Button color="primary" onClick={() => setRig({ morphTarget: [{ 'Explosive': 0 }, { 'Eye_Blink': 0 }, { 'Lip_Open': 0 }] })}>B</Button>
+            </Col>
+          </Row>
+        </Container>
       }
 
       <canvas
@@ -61,11 +84,15 @@ const App = () => {
           fullscreen ? { width: '100%', height: '100%' } :
             { width: p.canvas ? p.canvas.width : '100%', height: p.canvas ? p.canvas.height : '100%', border: '1px solid green' }
         }
-        width='640px'
-        height='480px'
+        width={p.canvas.width}
+        height={p.canvas.height}
       />
-      {/* <CharacterViewer {...p} canvas={canvasRef} hideAll={true} disableOrbit /> */}
-      <CharacterViewer {...p} canvas={canvasRef} hideAll={fullscreen} />
+      <CharacterViewer
+        {...p}
+        canvas={canvasRef}
+        hideAll={fullscreen}
+        rig={rig}
+      />
     </>
   );
 }

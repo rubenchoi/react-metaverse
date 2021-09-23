@@ -18,6 +18,8 @@ function DatGuiComponent(props) {
         const guiMorph = guiCharacter.addFolder('MorphTarget');
         const guiAnimation = guiCharacter.addFolder('Animation');
 
+        const riggings = { bone: {}, morphTarget: {}, animation: [] };
+
         const parseRig = (bone) => {
             try {
                 switch (bone.type) {
@@ -30,7 +32,9 @@ function DatGuiComponent(props) {
                                     props.debug && console.log(key + ":" + bone.morphTargetInfluences[idx]);
                                     let max = Math.ceil(bone.morphTargetInfluences[idx]);
                                     max = max === 0 ? 1 : max;
-                                    guiMorph.add(bone.morphTargetInfluences, idx, 0, max).name(key + "[" + bone.name + "]");
+                                    guiMorph.add(bone.morphTargetInfluences, idx, 0, max).name(key + " [" + bone.name + "]");
+
+                                    riggings.morphTarget[key] = { bone: bone, index: idx };
                                 })
                             } catch (err) {
                                 props.debug && console.log(err);
@@ -45,20 +49,26 @@ function DatGuiComponent(props) {
                         ['x', 'y', 'z'].forEach(xyz =>
                             guiBoneCoord.add(bone.rotation, xyz, ROT_MIN, ROT_MAX).name(bone.name + "[rot_" + xyz + "]")
                         );
+
+                        riggings.bone[bone.name] = bone;
                         break;
                     default:
                         break;
                 }
-            } catch (e) { }
+            } catch (e) {
+                props.debug && console.log(e);
+            }
         }
 
         const generateAnimations = (animations) => {
             try {
                 animations.forEach((item, idx) => {
                     props.debug && console.log('generateAnimations', item, idx);
-                    guiAnimation.add({ btn: () => props.onChangeAnimation(idx) }, 'btn').name(item.name);
+                    guiAnimation.add({ btn: () => props.requestChangeAnimation(idx) }, 'btn').name(item.name);
+                    riggings.animation.push({ name: item.name, target: idx });
                 });
-                guiAnimation.add({ btn: () => props.onChangeAnimation(-1) }, 'btn').name('stop');
+                guiAnimation.add({ btn: () => props.requestChangeAnimation(-1) }, 'btn').name('stop');
+                riggings.animation.push({ name: 'stop', target: -1 });
             } catch (err) { }
         }
 
@@ -70,9 +80,11 @@ function DatGuiComponent(props) {
             dom.removeChild(dom.firstChild);
         }
         dom.appendChild(gui.domElement);
+
+        props.callbacks && props.callbacks.onLoad && props.callbacks.onLoad(riggings);
     }, [props.character]);
 
-    return (<div ref={ref} style={{ width: 'fit-content' }} />)
+    return (<div ref={ref} style={{ display: props.visible ? 'block' : 'none', width: 'fit-content' }} />)
 }
 
 export default DatGuiComponent;

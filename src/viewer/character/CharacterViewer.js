@@ -10,7 +10,8 @@ let stopped;
 
 const Status = {
     INITIALIZING: 'initializing...',
-    IDLE: 'idle'
+    IDLE: 'idle',
+    TPOSE: 'T-pose',
 }
 
 function CharacterViewer(props) {
@@ -18,6 +19,7 @@ function CharacterViewer(props) {
     const [cg, setCg] = useState(undefined);
     const [delta, setDelta] = useState(0);
     const [loading, setLoading] = useState(undefined);
+    const [rig, setRig] = useState(undefined);
 
     THREE.Cache.enabled = true;
 
@@ -67,6 +69,67 @@ function CharacterViewer(props) {
         }
     }, []);
 
+    // useEffect(() => {
+    //     const createKeyInput = () => {
+    //         document.addEventListener('keydown', (event) => {
+    //             switch (event.code) {
+    //                 case 'ArrowUp':
+    //                 case 'KeyW':
+    //                     fp.moveForward = true;
+    //                     break;
+    //                 case 'ArrowLeft':
+    //                 case 'KeyA':
+    //                     fp.moveLeft = true;
+    //                     break;
+    //                 case 'ArrowDown':
+    //                 case 'KeyS':
+    //                     fp.moveBackward = true;
+    //                     break;
+    //                 case 'ArrowRight':
+    //                 case 'KeyD':
+    //                     fp.moveRight = true;
+    //                     break;
+    //                 case 'Space':
+    //                     if (fp.canJump === true) {
+    //                         fp.velocity.y += 150;
+    //                     }
+    //                     fp.canJump = false;
+    //                     break;
+    //                 default:
+    //                     break;
+    //             }
+    //         });
+
+    //         document.addEventListener('keyup', (event) => {
+    //             switch (event.code) {
+    //                 case 'ArrowUp':
+    //                 case 'KeyW':
+    //                     fp.moveForward = false;
+    //                     break;
+
+    //                 case 'ArrowLeft':
+    //                 case 'KeyA':
+    //                     fp.moveLeft = false;
+    //                     break;
+
+    //                 case 'ArrowDown':
+    //                 case 'KeyS':
+    //                     fp.moveBackward = false;
+    //                     break;
+
+    //                 case 'ArrowRight':
+    //                 case 'KeyD':
+    //                     fp.moveRight = false;
+    //                     break;
+    //                 default:
+    //                     break;
+    //             }
+    //         })
+    //     }
+
+    //     createKeyInput();
+    // }, []);
+
     useEffect(() => {
         if (!cg) {
             return;
@@ -90,6 +153,20 @@ function CharacterViewer(props) {
         setStatus(Status.INITIALIZING);
     }, [props.character]);
 
+    useEffect(() => setRig(props.rig), [props.rig]);
+
+    useEffect(() => {
+        switch (status) {
+            case Status.TPOSE:
+                setRig({ animation: -1 });
+                break;
+            case Status.INITIALIZING:
+            case Status.IDLE:
+            default:
+                break;
+        }
+    }, [status]);
+
     return (<>
         <canvas ref={refCanvas} style={{ display: props.canvas ? 'none' : 'block', width: '100%', height: '100%', border: '1px dashed gray' }} />
 
@@ -108,13 +185,25 @@ function CharacterViewer(props) {
 
             {props.character &&
                 <Character
+                    debug={true}
                     scene={cg.scene}
                     character={props.character}
                     geo={props.geo}
+                    rig={rig}
                     delta={delta}
                     hideAll={props.hideAll}
-                    onProgress={p => setLoading(p)}
-                    onLoad={() => { setStatus(Status.IDLE); props.onLoad && props.onLoad(refCanvas); }}
+                    callbacks={{
+                        onProgress: p => setLoading(p),
+                        onLoad: () => {
+                            setStatus(Status.IDLE);
+                            props.callbacks && props.callbacks.onLoad && props.callbacks.onLoad(refCanvas);
+                        },
+                        onMoveInfo: info => {
+                            console.log('rig: ', info);
+                            setStatus(Status.TPOSE);
+                            props.callbacks && props.callbacks.onMoveInfo && props.callbacks.onMoveInfo(info);
+                        }
+                    }}
                 />
             }
 
