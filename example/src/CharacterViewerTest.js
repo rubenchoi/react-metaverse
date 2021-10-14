@@ -17,7 +17,7 @@ const settings = {
     geo: { scale: 0.1, position: { x: 0, y: -40, z: -20 } }
   },
   'test': {
-    character: 'Asian-PrimeHair-PBR.fbx',
+    character: 'Chloe.fbx',
     geo: {
       scale: 0.1, position: { x: 0, y: -10, z: 0 }
     },

@@ -60,14 +60,18 @@ function DatGuiComponent(props) {
             }
         }
 
+        const requestChangeAnimation = (idx) => {
+            props.callbacks && props.callbacks.requestChangeAnimation(idx);
+        }
+
         const generateAnimations = (animations) => {
             try {
                 animations.forEach((item, idx) => {
                     props.debug && console.log('generateAnimations', item, idx);
-                    guiAnimation.add({ btn: () => props.requestChangeAnimation(idx) }, 'btn').name(item.name);
+                    guiAnimation.add({ btn: () => requestChangeAnimation(idx) }, 'btn').name(item.name);
                     riggings.animation.push({ name: item.name, target: idx });
                 });
-                guiAnimation.add({ btn: () => props.requestChangeAnimation(-1) }, 'btn').name('stop');
+                guiAnimation.add({ btn: () => requestChangeAnimation(-1) }, 'btn').name('stop');
                 riggings.animation.push({ name: 'stop', target: -1 });
             } catch (err) { }
         }
